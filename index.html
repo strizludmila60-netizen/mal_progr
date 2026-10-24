@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Терешківській школі математичний релакс: Черепашка-художник</title>
+    <title>Математичний релакс: Черепашка-художник</title>
     <style>
         body {
             margin: 0;
@@ -56,7 +56,7 @@
         <button class="btn-sketch" onclick="runSketch()">1. Намалювати ескіз</button>
         <button class="btn-color" onclick="runColor()">2. Розфарбувати</button>
         <button class="btn-sky" onclick="makeSkyBlue()">Змінити небо на вечірнє</button>
-        <button class="btn-clear" onclick="clearCanvas()">Очистити все</button>
+        <button class="btn-clear" onclick="clearCanvasFull()">Очистити все</button>
     </div>
 
     <div id="canvas-container">
@@ -69,9 +69,11 @@
 
     let currentBgColor = "white";
     let isSketchMode = false;
-    let waveOffset1 = 0; // Зсув для першої хвилі (вправо)
-    let waveOffset2 = 0; // Зсув для другої хвилі (вліво)
-    let animationId = null; // Для керування циклом анімації
+    let waveOffset1 = 0;
+    let waveOffset2 = 0;
+    let sunRotation = 0;   // Кут обертання променів сонця
+    let gullFlight = 0;    // Параметр польоту і віддалення чайок
+    let animationId = null;
 
     function clearCanvas() {
         ctx.fillStyle = currentBgColor;
@@ -80,8 +82,8 @@
 
     clearCanvas();
 
-    // 1. Сонце з променями
-    function drawSun(x, y, isSketch) {
+    // 1. Сонце з променями, що обертаються
+    function drawSun(x, y, isSketch, rotationAngle) {
         ctx.beginPath();
         ctx.arc(x, y, 25, 0, Math.PI * 2);
         if (isSketch) {
@@ -96,8 +98,9 @@
             ctx.stroke();
         }
 
+        // Промені з урахуванням кута обертання
         for (let i = 0; i < 8; i++) {
-            let angle = (i * 45) * Math.PI / 180;
+            let angle = (i * 45 + rotationAngle) * Math.PI / 180;
             let x1 = x + Math.cos(angle) * 25;
             let y1 = y + Math.sin(angle) * 25;
             let x2 = x + Math.cos(angle) * 40;
@@ -133,7 +136,6 @@
             ctx.stroke();
         }
 
-        // Вітрило
         ctx.beginPath();
         ctx.moveTo(x + 40, y);
         ctx.lineTo(x + 40, y - 65);
@@ -153,7 +155,7 @@
         }
     }
 
-    // 3. Досконалий кит
+    // 3. Кит із фонтаном
     function drawWhale(x, y, color, isSketch) {
         ctx.beginPath();
         ctx.arc(x, y, 45, Math.PI, 0, false);
@@ -173,7 +175,6 @@
             ctx.stroke();
         }
 
-        // Хвіст
         ctx.beginPath();
         ctx.moveTo(x + 50, y + 10);
         ctx.lineTo(x + 85, y - 10);
@@ -193,7 +194,6 @@
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            // Око
             ctx.beginPath();
             ctx.arc(x - 20, y - 10, 5, 0, Math.PI * 2);
             ctx.fillStyle = "white";
@@ -205,7 +205,6 @@
             ctx.fillStyle = "black";
             ctx.fill();
 
-            // Фонтанчик
             ctx.beginPath();
             ctx.moveTo(x - 5, y - 45);
             ctx.quadraticCurveTo(x - 15, y - 70, x - 25, y - 60);
@@ -217,16 +216,14 @@
         }
     }
 
-    // 4. Динамічні хвилі зі зсувом (offset)
+    // 4. Рухомі хвилі
     function drawMovingWaves(startX, y, color, isSketch, offset) {
         ctx.save();
-        // Обрізаємо область малювання, щоб хвилі не виходили за межі екрана
         ctx.beginPath();
         ctx.rect(50, y - 30, 800, 60);
         ctx.clip();
 
         ctx.beginPath();
-        // Цикл із запасом для безперервного руху
         let baseStartX = startX + (offset % 30);
         ctx.moveTo(baseStartX - 60, y);
 
@@ -240,37 +237,53 @@
         ctx.restore();
     }
 
-    // 5. Чайки у небі
-    function drawGull(x, y, isSketch) {
+    // 5. Чайки, що летять і віддаляються (змінюють розмір і положення)
+    function drawGull(startX, startY, isSketch, flightProgress) {
+        // Ефект віддаляння: зменшуємо масштаб і зсуваємо вправо-вгору
+        let scale = Math.max(0.4, 1 - (flightProgress * 0.002));
+        let x = startX + (flightProgress * 0.5);
+        let y = startY - (flightProgress * 0.2);
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.scale(scale, scale);
+
         ctx.beginPath();
-        ctx.moveTo(x - 20, y - 10);
-        ctx.quadraticCurveTo(x - 10, y - 20, x, y);
-        ctx.quadraticCurveTo(x + 10, y - 20, x + 20, y - 10);
+        ctx.moveTo(-20, -10);
+        ctx.quadraticCurveTo(-10, -20, 0, 0);
+        ctx.quadraticCurveTo(10, -20, 20, -10);
+        
         ctx.strokeStyle = isSketch ? "gray" : "#555555";
         ctx.lineWidth = isSketch ? 1 : 2;
         ctx.stroke();
+        ctx.restore();
     }
 
-    // Головний цикл анімації руху хвиль
-    function startWaveAnimation() {
+    // Головний цикл анімації (сонце крутиться, хвилі рухаються, чайки летять)
+    function startFullAnimation() {
         if (animationId) cancelAnimationFrame(animationId);
 
         function renderFrame() {
             clearCanvas();
 
-            // Оновлюємо зсуви координат: перша хвиля вправо (+), друга вліво (-)
+            // Оновлюємо параметри руху
             waveOffset1 += 0.5;
             waveOffset2 -= 0.5;
+            sunRotation += 0.3; // Швидкість обертання сонця
+            gullFlight += 0.4;  // Швидкість польоту чайок
+            if (gullFlight > 300) gullFlight = 0; // Цикл польоту чайок
 
-            // Перемальовуємо сцену
-            drawSun(130, 100, isSketchMode);
+            // Перемальовуємо всю сцену у динаміці
+            drawSun(130, 100, isSketchMode, sunRotation);
             drawMovingWaves(80, 355, "blue", isSketchMode, waveOffset1);
             drawMovingWaves(80, 370, "cyan", isSketchMode, waveOffset2);
             drawBoat(280, 315, "brown", "red", isSketchMode);
             drawWhale(620, 345, "darkblue", isSketchMode);
-            drawGull(320, 90, isSketchMode);
-            drawGull(400, 70, isSketchMode);
-            drawGull(480, 100, isSketchMode);
+            
+            // Чайки летять і віддаляються
+            drawGull(280, 90, isSketchMode, gullFlight);
+            drawGull(360, 70, isSketchMode, gullFlight);
+            drawGull(440, 100, isSketchMode, gullFlight);
 
             animationId = requestAnimationFrame(renderFrame);
         }
@@ -278,7 +291,7 @@
         renderFrame();
     }
 
-    // Покрокова поява об'єктів перед запуском постійного руху
+    // Покрокова поява об'єктів
     function animateDrawing(isSketch) {
         if (animationId) cancelAnimationFrame(animationId);
         isSketchMode = isSketch;
@@ -287,7 +300,7 @@
         let step = 0;
         let timer = setInterval(() => {
             step++;
-            if (step === 1) drawSun(130, 100, isSketch);
+            if (step === 1) drawSun(130, 100, isSketch, 0);
             if (step === 2) {
                 drawMovingWaves(80, 355, "blue", isSketch, 0);
                 drawMovingWaves(80, 370, "cyan", isSketch, 0);
@@ -295,13 +308,13 @@
             if (step === 3) drawBoat(280, 315, "brown", "red", isSketch); 
             if (step === 4) drawWhale(620, 345, "darkblue", isSketch);   
             if (step === 5) {
-                drawGull(320, 90, isSketch);
-                drawGull(400, 70, isSketch);
-                drawGull(480, 100, isSketch);
+                drawGull(280, 90, isSketch, 0);
+                drawGull(360, 70, isSketch, 0);
+                drawGull(440, 100, isSketch, 0);
                 clearInterval(timer);
                 
-                // Після завершення покрокового малювання запускаємо зациклений рух хвиль!
-                startWaveAnimation();
+                // Запускаємо загальну живу анімацію пейзажу!
+                startFullAnimation();
             }
         }, 250);
     }
