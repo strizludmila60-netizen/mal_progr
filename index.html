@@ -68,6 +68,10 @@
     const ctx = canvas.getContext("2d");
 
     let currentBgColor = "white";
+    let isSketchMode = false;
+    let waveOffset1 = 0; // Зсув для першої хвилі (вправо)
+    let waveOffset2 = 0; // Зсув для другої хвилі (вліво)
+    let animationId = null; // Для керування циклом анімації
 
     function clearCanvas() {
         ctx.fillStyle = currentBgColor;
@@ -108,7 +112,7 @@
         }
     }
 
-    // 2. Човен (трапеція на воді)
+    // 2. Човен
     function drawBoat(x, y, boatColor, sailColor, isSketch) {
         ctx.beginPath();
         ctx.moveTo(x - 30, y);
@@ -149,9 +153,8 @@
         }
     }
 
-    // 3. ДОСКОНАЛИЙ КИТ (з тулубом, хвостом, оком і фонтаном)
+    // 3. Досконалий кит
     function drawWhale(x, y, color, isSketch) {
-        // Тіло кита (спина)
         ctx.beginPath();
         ctx.arc(x, y, 45, Math.PI, 0, false);
         ctx.lineTo(x + 55, y + 25);
@@ -170,7 +173,7 @@
             ctx.stroke();
         }
 
-        // Хвіст кита (гарний подвійний плавник ззаду)
+        // Хвіст
         ctx.beginPath();
         ctx.moveTo(x + 50, y + 10);
         ctx.lineTo(x + 85, y - 10);
@@ -190,7 +193,7 @@
             ctx.lineWidth = 3;
             ctx.stroke();
 
-            // Око кита
+            // Око
             ctx.beginPath();
             ctx.arc(x - 20, y - 10, 5, 0, Math.PI * 2);
             ctx.fillStyle = "white";
@@ -202,7 +205,7 @@
             ctx.fillStyle = "black";
             ctx.fill();
 
-            // Фонтанчик води
+            // Фонтанчик
             ctx.beginPath();
             ctx.moveTo(x - 5, y - 45);
             ctx.quadraticCurveTo(x - 15, y - 70, x - 25, y - 60);
@@ -214,16 +217,27 @@
         }
     }
 
-    // 4. Хвилі
-    function drawWaves(x, y, color, isSketch) {
+    // 4. Динамічні хвилі зі зсувом (offset)
+    function drawMovingWaves(startX, y, color, isSketch, offset) {
+        ctx.save();
+        // Обрізаємо область малювання, щоб хвилі не виходили за межі екрана
         ctx.beginPath();
-        ctx.moveTo(x, y);
-        for (let i = 0; i < 9; i++) {
-            ctx.bezierCurveTo(x + 10 + i*30, y - 15, x + 20 + i*30, y - 15, x + 30 + i*30, y);
+        ctx.rect(50, y - 30, 800, 60);
+        ctx.clip();
+
+        ctx.beginPath();
+        // Цикл із запасом для безперервного руху
+        let baseStartX = startX + (offset % 30);
+        ctx.moveTo(baseStartX - 60, y);
+
+        for (let i = -2; i < 30; i++) {
+            let x = baseStartX + i * 30;
+            ctx.bezierCurveTo(x + 10, y - 15, x + 20, y - 15, x + 30, y);
         }
         ctx.strokeStyle = isSketch ? "gray" : color;
         ctx.lineWidth = isSketch ? 1 : 2;
         ctx.stroke();
+        ctx.restore();
     }
 
     // 5. Чайки у небі
@@ -237,8 +251,37 @@
         ctx.stroke();
     }
 
-    // Покрокова анімація
+    // Головний цикл анімації руху хвиль
+    function startWaveAnimation() {
+        if (animationId) cancelAnimationFrame(animationId);
+
+        function renderFrame() {
+            clearCanvas();
+
+            // Оновлюємо зсуви координат: перша хвиля вправо (+), друга вліво (-)
+            waveOffset1 += 0.5;
+            waveOffset2 -= 0.5;
+
+            // Перемальовуємо сцену
+            drawSun(130, 100, isSketchMode);
+            drawMovingWaves(80, 355, "blue", isSketchMode, waveOffset1);
+            drawMovingWaves(80, 370, "cyan", isSketchMode, waveOffset2);
+            drawBoat(280, 315, "brown", "red", isSketchMode);
+            drawWhale(620, 345, "darkblue", isSketchMode);
+            drawGull(320, 90, isSketchMode);
+            drawGull(400, 70, isSketchMode);
+            drawGull(480, 100, isSketchMode);
+
+            animationId = requestAnimationFrame(renderFrame);
+        }
+
+        renderFrame();
+    }
+
+    // Покрокова поява об'єктів перед запуском постійного руху
     function animateDrawing(isSketch) {
+        if (animationId) cancelAnimationFrame(animationId);
+        isSketchMode = isSketch;
         clearCanvas();
         
         let step = 0;
@@ -246,8 +289,8 @@
             step++;
             if (step === 1) drawSun(130, 100, isSketch);
             if (step === 2) {
-                drawWaves(80, 355, "blue", isSketch);
-                drawWaves(100, 370, "cyan", isSketch);
+                drawMovingWaves(80, 355, "blue", isSketch, 0);
+                drawMovingWaves(80, 370, "cyan", isSketch, 0);
             }
             if (step === 3) drawBoat(280, 315, "brown", "red", isSketch); 
             if (step === 4) drawWhale(620, 345, "darkblue", isSketch);   
@@ -256,6 +299,9 @@
                 drawGull(400, 70, isSketch);
                 drawGull(480, 100, isSketch);
                 clearInterval(timer);
+                
+                // Після завершення покрокового малювання запускаємо зациклений рух хвиль!
+                startWaveAnimation();
             }
         }, 250);
     }
@@ -270,8 +316,14 @@
 
     function makeSkyBlue() {
         currentBgColor = "#E0FFFF";
+        if (!animationId) clearCanvas();
+    }
+
+    function clearCanvasFull() {
+        if (animationId) cancelAnimationFrame(animationId);
+        animationId = null;
+        currentBgColor = "white";
         clearCanvas();
-        animateDrawing(false);
     }
 </script>
 </body>
