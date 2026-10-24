@@ -108,13 +108,13 @@
         }
     }
 
-    // 2. Човен (як у вашому коді Python)
+    // 2. Човен (тепер чітко на воді)
     function drawBoat(x, y, boatColor, sailColor, isSketch) {
-        // Корпус
+        // Корпус (основа човна)
         ctx.beginPath();
         ctx.moveTo(x, y);
-        ctx.lineTo(x - 40, y + 50);
-        ctx.lineTo(x + 120, y + 50);
+        ctx.lineTo(x - 40, y + 45);
+        ctx.lineTo(x + 120, y + 45);
         ctx.lineTo(x + 80, y);
         ctx.closePath();
 
@@ -130,11 +130,11 @@
             ctx.stroke();
         }
 
-        // Вітрило
+        // Щогла та вітрило (нагорі корпусу)
         ctx.beginPath();
-        ctx.moveTo(x + 40, y + 50);
-        ctx.lineTo(x + 40, y + 120);
-        ctx.lineTo(x + 90, y + 75);
+        ctx.moveTo(x + 40, y);
+        ctx.lineTo(x + 40, y - 65);
+        ctx.lineTo(x + 90, y - 30);
         ctx.closePath();
 
         if (isSketch) {
@@ -150,13 +150,12 @@
         }
     }
 
-    // 3. Кит
+    // 3. Кит (правильно орієнтований на воді)
     function drawWhale(x, y, color, isSketch) {
         ctx.beginPath();
         ctx.arc(x, y, 50, Math.PI, 0, false);
-        ctx.lineTo(x + 20, y);
-        ctx.lineTo(x + 20, y + 20);
-        ctx.lineTo(x, y);
+        ctx.lineTo(x + 50, y + 25);
+        ctx.lineTo(x - 50, y + 25);
         ctx.closePath();
 
         if (isSketch) {
@@ -172,13 +171,13 @@
 
             // Око кита
             ctx.beginPath();
-            ctx.arc(x - 70 + 50, y + 40, 7, 0, Math.PI * 2);
+            ctx.arc(x - 25, y - 15, 6, 0, Math.PI * 2);
             ctx.fillStyle = "white";
             ctx.fill();
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.arc(x - 70 + 50, y + 40, 3, 0, Math.PI * 2);
+            ctx.arc(x - 27, y - 15, 2.5, 0, Math.PI * 2);
             ctx.fillStyle = "black";
             ctx.fill();
         }
@@ -188,7 +187,7 @@
     function drawWaves(x, y, color, isSketch) {
         ctx.beginPath();
         ctx.moveTo(x, y);
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < 9; i++) {
             ctx.bezierCurveTo(x + 10 + i*30, y - 15, x + 20 + i*30, y - 15, x + 30 + i*30, y);
         }
         ctx.strokeStyle = isSketch ? "gray" : color;
@@ -196,21 +195,18 @@
         ctx.stroke();
     }
 
-    // 5. НОВЕ: Чайки в небі
+    // 5. Чайки у небі
     function drawGull(x, y, isSketch) {
         ctx.beginPath();
-        // Малюємо ліве крило чайки
         ctx.moveTo(x - 20, y - 10);
         ctx.quadraticCurveTo(x - 10, y - 20, x, y);
-        // Малюємо праве крило чайки
         ctx.quadraticCurveTo(x + 10, y - 20, x + 20, y - 10);
-        
         ctx.strokeStyle = isSketch ? "gray" : "#555555";
         ctx.lineWidth = isSketch ? 1 : 2;
         ctx.stroke();
     }
 
-    // Покрокова анімація малювання (ефект руху черепашки)
+    // Покрокова анімація (виправлені координати для правильного розташування)
     function animateDrawing(isSketch) {
         clearCanvas();
         
@@ -218,20 +214,21 @@
         let timer = setInterval(() => {
             step++;
             if (step === 1) drawSun(130, 100, isSketch);
-            if (step === 2) drawWaves(100, 320, "blue", isSketch);
-            if (step === 3) drawWaves(120, 340, "cyan", isSketch);
-            if (step === 4) drawBoat(250, 220, "brown", "red", isSketch);
-            if (step === 5) drawWhale(550, 270, "darkblue", isSketch);
-            if (step === 6) {
-                drawGull(300, 80, isSketch);
-                drawGull(380, 60, isSketch);
-                drawGull(450, 90, isSketch);
+            if (step === 2) {
+                drawWaves(80, 360, "blue", isSketch);
+                drawWaves(100, 375, "cyan", isSketch);
+            }
+            if (step === 3) drawBoat(280, 320, "brown", "red", isSketch); // Човен тепер чітко на воді
+            if (step === 4) drawWhale(650, 350, "darkblue", isSketch);   // Кит пливе у правій частині
+            if (step === 5) {
+                drawGull(320, 90, isSketch);
+                drawGull(400, 70, isSketch);
+                drawGull(480, 100, isSketch);
                 clearInterval(timer);
             }
-        }, 300); // Швидкість появи елементів (у мілісекундах)
+        }, 250);
     }
 
-    // Дії кнопок
     function runSketch() {
         animateDrawing(true);
     }
