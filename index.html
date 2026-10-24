@@ -108,9 +108,8 @@
         }
     }
 
-    // 2. Човен (правильна трапеція на воді)
+    // 2. Човен (трапеція на воді)
     function drawBoat(x, y, boatColor, sailColor, isSketch) {
-        // Корпус човна (трапеція: широка основа зверху)
         ctx.beginPath();
         ctx.moveTo(x - 30, y);
         ctx.lineTo(x + 110, y);
@@ -150,13 +149,34 @@
         }
     }
 
-    // 3. Кит (пливе та б'є фонтан)
+    // 3. ДОСКОНАЛИЙ КИТ (з тулубом, хвостом, оком і фонтаном)
     function drawWhale(x, y, color, isSketch) {
-        // Тіло кита
+        // Тіло кита (спина)
         ctx.beginPath();
-        ctx.arc(x, y, 50, Math.PI, 0, false);
-        ctx.lineTo(x + 50, y + 25);
-        ctx.lineTo(x - 50, y + 25);
+        ctx.arc(x, y, 45, Math.PI, 0, false);
+        ctx.lineTo(x + 55, y + 25);
+        ctx.lineTo(x - 45, y + 25);
+        ctx.closePath();
+
+        if (isSketch) {
+            ctx.strokeStyle = "gray";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        } else {
+            ctx.fillStyle = "#3CB371";
+            ctx.fill();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        // Хвіст кита (гарний подвійний плавник ззаду)
+        ctx.beginPath();
+        ctx.moveTo(x + 50, y + 10);
+        ctx.lineTo(x + 85, y - 10);
+        ctx.lineTo(x + 75, y + 15);
+        ctx.lineTo(x + 85, y + 35);
+        ctx.lineTo(x + 50, y + 20);
         ctx.closePath();
 
         if (isSketch) {
@@ -172,22 +192,22 @@
 
             // Око кита
             ctx.beginPath();
-            ctx.arc(x - 25, y - 15, 6, 0, Math.PI * 2);
+            ctx.arc(x - 20, y - 10, 5, 0, Math.PI * 2);
             ctx.fillStyle = "white";
             ctx.fill();
             ctx.stroke();
 
             ctx.beginPath();
-            ctx.arc(x - 27, y - 15, 2.5, 0, Math.PI * 2);
+            ctx.arc(x - 22, y - 10, 2, 0, Math.PI * 2);
             ctx.fillStyle = "black";
             ctx.fill();
 
             // Фонтанчик води
             ctx.beginPath();
-            ctx.moveTo(x - 10, y - 50);
-            ctx.quadraticCurveTo(x - 20, y - 75, x - 30, y - 65);
-            ctx.moveTo(x - 10, y - 50);
-            ctx.quadraticCurveTo(x, y - 80, x + 10, y - 70);
+            ctx.moveTo(x - 5, y - 45);
+            ctx.quadraticCurveTo(x - 15, y - 70, x - 25, y - 60);
+            ctx.moveTo(x - 5, y - 45);
+            ctx.quadraticCurveTo(x + 5, y - 75, x + 15, y - 65);
             ctx.strokeStyle = "#00BFFF";
             ctx.lineWidth = 2;
             ctx.stroke();
@@ -230,7 +250,7 @@
                 drawWaves(100, 370, "cyan", isSketch);
             }
             if (step === 3) drawBoat(280, 315, "brown", "red", isSketch); 
-            if (step === 4) drawWhale(650, 345, "darkblue", isSketch);   
+            if (step === 4) drawWhale(620, 345, "darkblue", isSketch);   
             if (step === 5) {
                 drawGull(320, 90, isSketch);
                 drawGull(400, 70, isSketch);
