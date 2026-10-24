@@ -2,7 +2,7 @@
 <html lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>Учням Терешківської школи математичний релакс: Черепашка-художник</title>
+    <title>Математичний релакс: Черепашка-художник</title>
     <style>
         body {
             margin: 0;
@@ -108,14 +108,14 @@
         }
     }
 
-    // 2. Човен (тепер чітко на воді)
+    // 2. Човен (правильна трапеція на воді)
     function drawBoat(x, y, boatColor, sailColor, isSketch) {
-        // Корпус (основа човна)
+        // Корпус човна (трапеція: широка основа зверху)
         ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x - 40, y + 45);
-        ctx.lineTo(x + 120, y + 45);
-        ctx.lineTo(x + 80, y);
+        ctx.moveTo(x - 30, y);
+        ctx.lineTo(x + 110, y);
+        ctx.lineTo(x + 80, y + 45);
+        ctx.lineTo(x, y + 45);
         ctx.closePath();
 
         if (isSketch) {
@@ -130,11 +130,11 @@
             ctx.stroke();
         }
 
-        // Щогла та вітрило (нагорі корпусу)
+        // Вітрило
         ctx.beginPath();
         ctx.moveTo(x + 40, y);
         ctx.lineTo(x + 40, y - 65);
-        ctx.lineTo(x + 90, y - 30);
+        ctx.lineTo(x + 90, y - 25);
         ctx.closePath();
 
         if (isSketch) {
@@ -150,8 +150,9 @@
         }
     }
 
-    // 3. Кит (правильно орієнтований на воді)
+    // 3. Кит (пливе та б'є фонтан)
     function drawWhale(x, y, color, isSketch) {
+        // Тіло кита
         ctx.beginPath();
         ctx.arc(x, y, 50, Math.PI, 0, false);
         ctx.lineTo(x + 50, y + 25);
@@ -180,6 +181,16 @@
             ctx.arc(x - 27, y - 15, 2.5, 0, Math.PI * 2);
             ctx.fillStyle = "black";
             ctx.fill();
+
+            // Фонтанчик води
+            ctx.beginPath();
+            ctx.moveTo(x - 10, y - 50);
+            ctx.quadraticCurveTo(x - 20, y - 75, x - 30, y - 65);
+            ctx.moveTo(x - 10, y - 50);
+            ctx.quadraticCurveTo(x, y - 80, x + 10, y - 70);
+            ctx.strokeStyle = "#00BFFF";
+            ctx.lineWidth = 2;
+            ctx.stroke();
         }
     }
 
@@ -206,7 +217,7 @@
         ctx.stroke();
     }
 
-    // Покрокова анімація (виправлені координати для правильного розташування)
+    // Покрокова анімація
     function animateDrawing(isSketch) {
         clearCanvas();
         
@@ -215,11 +226,11 @@
             step++;
             if (step === 1) drawSun(130, 100, isSketch);
             if (step === 2) {
-                drawWaves(80, 360, "blue", isSketch);
-                drawWaves(100, 375, "cyan", isSketch);
+                drawWaves(80, 355, "blue", isSketch);
+                drawWaves(100, 370, "cyan", isSketch);
             }
-            if (step === 3) drawBoat(280, 320, "brown", "red", isSketch); // Човен тепер чітко на воді
-            if (step === 4) drawWhale(650, 350, "darkblue", isSketch);   // Кит пливе у правій частині
+            if (step === 3) drawBoat(280, 315, "brown", "red", isSketch); 
+            if (step === 4) drawWhale(650, 345, "darkblue", isSketch);   
             if (step === 5) {
                 drawGull(320, 90, isSketch);
                 drawGull(400, 70, isSketch);
